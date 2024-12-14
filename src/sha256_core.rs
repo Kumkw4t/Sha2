@@ -4,8 +4,8 @@ pub struct Sha256Core {
 }
 
 impl Sha256Core {
-    const K: [u32;64] = [
-        0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xb5c0fbcf, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+    pub const K: [u32;64] = [
+        0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
         0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
         0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
         0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
@@ -22,14 +22,14 @@ impl Sha256Core {
         }
     }
 
-    pub fn update(&mut self, input: Vec<u8>) {
+    pub fn update(&mut self, input: &Vec<u8>) {
 
         // input length must be less than 2**64 for sha256        
         assert!(input.len() < 0xffffffff);
 
         // padding input
         let size: usize = input.len();
-        self.buffer = input;
+        self.buffer = input.clone();
 
         self.buffer.push(0b10000000);
         while self.buffer.len() % 64 != 56 {
@@ -39,14 +39,9 @@ impl Sha256Core {
 
         // verify length and process each 512 bits of input buffer
         assert!(self.buffer.len() % 64 == 0);
-        let cur_length = self.buffer.len();
-        println!("buffer lenght before / after : {size}/{cur_length}");
-        let mut i = 0;
         while !self.buffer.is_empty() {
             let chunk: Vec<u8> = self.buffer.drain(..64).collect();
-            println!("{i}eme: {chunk:?}");
             self.process(&chunk);
-            i+=1;
         }
         
     }
@@ -60,16 +55,16 @@ impl Sha256Core {
         
         // compute message schedule
         let mut w = [0u32;64];
-        for i in 0..15 {
-            w[i] = u32::from_be_bytes([chunk[i*4],chunk[i*4+1],chunk[i*4+2],chunk[i*4+3]]);
+        for i in 0..16 {
+            w[i] = u32::from_be_bytes([chunk[i * 4], chunk[i * 4 + 1], chunk[i * 4 + 2], chunk[i * 4 + 3]]);
         }
 
-        for i in 16..63 {
+        for i in 16..64 {
 
             let sigma0: u32 = Self::rotate_right(w[i-15],7) ^ Self::rotate_right(w[i-15],18) ^ (w[i-15]>>3);
             let sigma1: u32 = Self::rotate_right(w[i-2],17) ^ Self::rotate_right(w[i-2],19) ^ (w[i-2]>>10);
 
-            w[i] = sigma1.wrapping_add(w[i-7]).wrapping_add(sigma0).wrapping_add(w[i-15]);
+            w[i] = sigma1.wrapping_add(w[i-7]).wrapping_add(sigma0).wrapping_add(w[i-16]);
         }
 
         // initiate working variables with current hash value
@@ -83,9 +78,9 @@ impl Sha256Core {
         let mut h = self.hash_value[7];
 
         // process message schedule
-        for i in 0..63 {
+        for i in 0..64 {
             let sum0: u32 = Self::rotate_right(a, 2) ^ Self::rotate_right(a, 13) ^ Self::rotate_right(a, 22);
-            let sum1: u32 = Self::rotate_right(a, 6) ^ Self::rotate_right(a, 11) ^ Self::rotate_right(a, 25);
+            let sum1: u32 = Self::rotate_right(e, 6) ^ Self::rotate_right(e, 11) ^ Self::rotate_right(e, 25);
             let ch:   u32 = (e & f) ^ ((!e) & g);
             let maj:  u32 = (a & b) ^ (a & c) ^ (b & c);
 
@@ -103,15 +98,9 @@ impl Sha256Core {
         }
 
         // updating hash value before moving to next chunk
-        self.hash_value[0] = a.wrapping_add(self.hash_value[0]);
-        self.hash_value[1] = b.wrapping_add(self.hash_value[1]);
-        self.hash_value[2] = c.wrapping_add(self.hash_value[2]);
-        self.hash_value[3] = d.wrapping_add(self.hash_value[3]);
-        self.hash_value[4] = e.wrapping_add(self.hash_value[4]);
-        self.hash_value[5] = f.wrapping_add(self.hash_value[5]);
-        self.hash_value[6] = g.wrapping_add(self.hash_value[6]);
-        self.hash_value[7] = h.wrapping_add(self.hash_value[7]);
-
+        for i in 0..8 {
+            self.hash_value[i] = self.hash_value[i].wrapping_add([a, b, c, d, e, f, g, h][i]);
+        }
     }
 
     fn rotate_right(var: u32, shift: u32) -> u32 {
