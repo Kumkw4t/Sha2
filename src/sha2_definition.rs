@@ -25,7 +25,7 @@ impl Sha256 {
         self.core.update(input);    
     }
 
-    pub fn finalize(self) -> [u32;8] {
+    pub fn finish(self) -> [u32;8] {
         self.core.finish()
     }
 }

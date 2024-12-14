@@ -1,5 +1,5 @@
 pub struct Sha256Core {
-    state: [u32;8],
+    hash_value: [u32;8],
     buffer: Vec<u8>,
 }
 
@@ -17,7 +17,7 @@ impl Sha256Core {
 
     pub fn new(initial_state: [u32;8]) -> Self {
         Self {
-            state: initial_state,
+            hash_value: initial_state,
             buffer: Vec::new(),
         }
     }
@@ -51,12 +51,71 @@ impl Sha256Core {
         
     }
 
-    fn process (&mut self, chunk: &Vec<u8>) {
-        // TODO
-    }
-
     pub fn finish(self) -> [u32;8] {
         // consumes hasher
-        [0,0,0,0,0,0,0,0]
+        self.hash_value
     }
+
+    fn process (&mut self, chunk: &Vec<u8>) {
+        
+        // compute message schedule
+        let mut w = [0u32;64];
+        for i in 0..15 {
+            w[i] = u32::from_be_bytes([chunk[i*4],chunk[i*4+1],chunk[i*4+2],chunk[i*4+3]]);
+        }
+
+        for i in 16..63 {
+
+            let sigma0: u32 = Self::rotate_right(w[i-15],7) ^ Self::rotate_right(w[i-15],18) ^ (w[i-15]>>3);
+            let sigma1: u32 = Self::rotate_right(w[i-2],17) ^ Self::rotate_right(w[i-2],19) ^ (w[i-2]>>10);
+
+            w[i] = sigma1.wrapping_add(w[i-7]).wrapping_add(sigma0).wrapping_add(w[i-15]);
+        }
+
+        // initiate working variables with current hash value
+        let mut a = self.hash_value[0];
+        let mut b = self.hash_value[1];
+        let mut c = self.hash_value[2];
+        let mut d = self.hash_value[3];
+        let mut e = self.hash_value[4];
+        let mut f = self.hash_value[5];
+        let mut g = self.hash_value[6];
+        let mut h = self.hash_value[7];
+
+        // process message schedule
+        for i in 0..63 {
+            let sum0: u32 = Self::rotate_right(a, 2) ^ Self::rotate_right(a, 13) ^ Self::rotate_right(a, 22);
+            let sum1: u32 = Self::rotate_right(a, 6) ^ Self::rotate_right(a, 11) ^ Self::rotate_right(a, 25);
+            let ch:   u32 = (e & f) ^ ((!e) & g);
+            let maj:  u32 = (a & b) ^ (a & c) ^ (b & c);
+
+            let t1: u32 = h.wrapping_add(sum1).wrapping_add(ch).wrapping_add(Self::K[i]).wrapping_add(w[i]);
+            let t2: u32 = sum0.wrapping_add(maj);
+
+            h = g;
+            g = f;
+            f = e;
+            e = d.wrapping_add(t1);
+            d = c;
+            c = b;
+            b = a;
+            a = t1.wrapping_add(t2);
+        }
+
+        // updating hash value before moving to next chunk
+        self.hash_value[0] = a.wrapping_add(self.hash_value[0]);
+        self.hash_value[1] = b.wrapping_add(self.hash_value[1]);
+        self.hash_value[2] = c.wrapping_add(self.hash_value[2]);
+        self.hash_value[3] = d.wrapping_add(self.hash_value[3]);
+        self.hash_value[4] = e.wrapping_add(self.hash_value[4]);
+        self.hash_value[5] = f.wrapping_add(self.hash_value[5]);
+        self.hash_value[6] = g.wrapping_add(self.hash_value[6]);
+        self.hash_value[7] = h.wrapping_add(self.hash_value[7]);
+
+    }
+
+    fn rotate_right(var: u32, shift: u32) -> u32 {
+        (var >> shift) | (var << (32 - shift))
+    }
+
 }
