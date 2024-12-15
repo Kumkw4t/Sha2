@@ -25,8 +25,11 @@ impl Sha256 {
         self.core.update(input);    
     }
 
-    pub fn finish(self) -> [u32;8] {
+    pub fn finish(self) -> Vec<u8> {
         self.core.finish()
+            .iter()
+            .flat_map(|x| x.to_be_bytes())
+            .collect()
     }
 }
 
@@ -55,7 +58,11 @@ impl Sha224 {
         self.core.update(input);    
     }
 
-    pub fn finish(self) -> [u32;7] {
-        self.core.finish()[..7].try_into().unwrap_or([0u32;7])
+    pub fn finish(self) -> Vec<u8> {
+        self.core.finish()
+            .iter()
+            .flat_map(|x| x.to_be_bytes())
+            .take(28) // 28*8 = 224
+            .collect()
     }
 }

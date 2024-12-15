@@ -28,8 +28,10 @@ impl Sha256Core {
         assert!((input.len() as u64*8) < u64::MAX);
 
         // padding input
-        let size: u64 = input.len() as u64;
-        self.buffer = input.clone();
+        let size: u64 = if input.len() == 1 && input[0] == 0 {0} else {input.len()} as u64;
+        if !input.is_empty() && !(input.len() == 1 && input[0] == 0) {
+            self.buffer = input.clone();
+        }
 
         self.buffer.push(0b10000000);
         while self.buffer.len() % 64 != 56 {

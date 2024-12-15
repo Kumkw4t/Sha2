@@ -40,8 +40,11 @@ impl Sha512Core {
         assert!((input.len() as u128 *8) < u128::MAX);
 
         // padding input
-        let size: u128 = input.len() as u128;
-        self.buffer = input.clone();
+        let size: u128 = if input.len() == 1 && input[0] == 0 {0} else {input.len()} as u128;
+
+        if !input.is_empty() && !(input.len() == 1 && input[0] == 0) {
+            self.buffer = input.clone();
+        }
 
         self.buffer.push(0b10000000);
         while self.buffer.len() % 128 != 112 {
@@ -49,9 +52,10 @@ impl Sha512Core {
         }
         self.buffer.extend((size*8).to_be_bytes());
 
+        let debug = self.buffer.clone();
+        println!("{debug:?}");
+
         // verify length and process each 1024 bits of input buffer
-        let size_after = self.buffer.len();
-        println!("length: {size_after}");
         assert!(self.buffer.len() % 128 == 0);
         while !self.buffer.is_empty() {
             let chunk: Vec<u8> = self.buffer.drain(..128).collect();
