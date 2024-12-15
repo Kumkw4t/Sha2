@@ -52,9 +52,6 @@ impl Sha512Core {
         }
         self.buffer.extend((size*8).to_be_bytes());
 
-        let debug = self.buffer.clone();
-        println!("{debug:?}");
-
         // verify length and process each 1024 bits of input buffer
         assert!(self.buffer.len() % 128 == 0);
         while !self.buffer.is_empty() {

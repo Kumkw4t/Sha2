@@ -1,4 +1,4 @@
-use crate::sha256_core::Sha256Core;
+use crate::sha2_lib::sha256_core::Sha256Core;
 
 pub struct Sha256 {
     core: Sha256Core,

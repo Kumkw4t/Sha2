@@ -1,12 +1,12 @@
-mod sha256_definition;
-mod sha512_definition;
-mod sha256_core;
-mod sha512_core;
+pub mod sha2_lib;
 
-use sha512_definition::Sha384;
+use sha2_lib::sha512_definition::Sha384;
 
 fn main() {
+
+    // parse hexadecimal string as u8 vector
     let mut message = String::from("00");
+    println!("{message}");
 
     let size = message.len()/2;
     let mut byte_vec: Vec<u8> = Vec::new();
@@ -16,11 +16,13 @@ fn main() {
         byte_vec.push(u8::from_str_radix(&cur_byte, 16).unwrap_or(0));
     }
     assert_eq!(byte_vec.len(),size);
-    println!("{byte_vec:?}");
 
+    // call Sha2 lib
     let mut hasher: Sha384 = Sha384::new();
     hasher.update(&byte_vec);
     let result = hasher.finish();
+
+    // print result
     print!("Sha384: ");
     for elem in result.iter() {
         print!("{elem:x?}");

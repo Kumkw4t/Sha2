@@ -1,4 +1,4 @@
-use crate::sha512_core::Sha512Core;
+use crate::sha2_lib::sha512_core::Sha512Core;
 
 pub struct Sha512 {
     core: Sha512Core,
