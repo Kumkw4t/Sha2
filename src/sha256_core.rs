@@ -25,10 +25,10 @@ impl Sha256Core {
     pub fn update(&mut self, input: &Vec<u8>) {
 
         // input length must be less than 2**64 for sha256        
-        assert!(input.len() < 0xffffffff);
+        assert!((input.len() as u64*8) < u64::MAX);
 
         // padding input
-        let size: usize = input.len();
+        let size: u64 = input.len() as u64;
         self.buffer = input.clone();
 
         self.buffer.push(0b10000000);
@@ -56,7 +56,7 @@ impl Sha256Core {
         // compute message schedule
         let mut w = [0u32;64];
         for i in 0..16 {
-            w[i] = u32::from_be_bytes([chunk[i * 4], chunk[i * 4 + 1], chunk[i * 4 + 2], chunk[i * 4 + 3]]);
+            w[i] = u32::from_be_bytes([chunk[i*4], chunk[i*4+1], chunk[i*4+2], chunk[i*4+3]]);
         }
 
         for i in 16..64 {
