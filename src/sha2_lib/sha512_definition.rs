@@ -1,12 +1,13 @@
 use crate::sha2_lib::sha512_core::Sha512Core;
+use crate::sha2_lib::Hasher;
 
 pub struct Sha512 {
     core: Sha512Core,
 }
 
-impl Sha512 {
+impl Hasher for Sha512 {
 
-    pub fn new() -> Self {
+    fn new() -> Self {
         Self {
             core: Sha512Core::new([
                 0x6a09e667f3bcc908,
@@ -21,11 +22,11 @@ impl Sha512 {
         }
     }
 
-    pub fn update(&mut self, input: &Vec<u8>) {
+    fn update(&mut self, input: &Vec<u8>) {
         self.core.update(input);    
     }
 
-    pub fn finish(self) -> Vec<u8> {
+    fn finish(self) -> Vec<u8> {
         self.core.finish()
             .iter()
             .flat_map(|x| x.to_be_bytes())
@@ -36,9 +37,9 @@ pub struct Sha512_224 {
     core: Sha512Core,
 }
 
-impl Sha512_224 {
+impl Hasher for Sha512_224 {
 
-    pub fn new() -> Self {
+    fn new() -> Self {
         Self {
             core: Sha512Core::new([
                 0x8C3D37C819544DA2,
@@ -53,11 +54,11 @@ impl Sha512_224 {
         }
     }
 
-    pub fn update(&mut self, input: &Vec<u8>) {
+    fn update(&mut self, input: &Vec<u8>) {
         self.core.update(input);    
     }
 
-    pub fn finish(self) -> Vec<u8> {
+    fn finish(self) -> Vec<u8> {
         self.core.finish()
             .iter()
             .flat_map(|x| x.to_be_bytes())
@@ -70,9 +71,9 @@ pub struct Sha512_256 {
     core: Sha512Core,
 }
 
-impl Sha512_256 {
+impl Hasher for Sha512_256 {
 
-    pub fn new() -> Self {
+    fn new() -> Self {
         Self {
             core: Sha512Core::new([
                 0x22312194FC2BF72C,
@@ -87,11 +88,11 @@ impl Sha512_256 {
         }
     }
 
-    pub fn update(&mut self, input: &Vec<u8>) {
+    fn update(&mut self, input: &Vec<u8>) {
         self.core.update(input);    
     }
 
-    pub fn finish(self) -> Vec<u8> {
+    fn finish(self) -> Vec<u8> {
         self.core.finish()
             .iter()
             .flat_map(|x| x.to_be_bytes())
@@ -104,9 +105,9 @@ pub struct Sha384 {
     core: Sha512Core,
 }
 
-impl Sha384 {
+impl Hasher for Sha384 {
 
-    pub fn new() -> Self {
+    fn new() -> Self {
         Self {
             core: Sha512Core::new([
                 0xcbbb9d5dc1059ed8,
@@ -121,11 +122,11 @@ impl Sha384 {
         }
     }
 
-    pub fn update(&mut self, input: &Vec<u8>) {
+    fn update(&mut self, input: &Vec<u8>) {
         self.core.update(input);    
     }
 
-    pub fn finish(self) -> Vec<u8> {
+    fn finish(self) -> Vec<u8> {
         self.core.finish()
             .iter()
             .flat_map(|x| x.to_be_bytes())
